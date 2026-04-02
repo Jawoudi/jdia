@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jd AI - Your Intelligent Chat Assistant</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Transformers.js for AI -->
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, query, where, getDocs, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDoOCvyEadxRGnTWCDywJGhFpw2vipSRXk",
+            authDomain: "jd-ia-cebba.firebaseapp.com",
+            projectId: "jd-ia-cebba",
+            storageBucket: "jd-ia-cebba.firebasestorage.app",
+            messagingSenderId: "205935936565",
+            appId: "1:205935936565:web:1ca4a5a303fefc10dd5d7c",
+            measurementId: "G-5TJYGHE9HV"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        // Configure Google provider
+        googleProvider.setCustomParameters({
+            prompt: 'select_account'
+        });
+        googleProvider.addScope('profile');
+        googleProvider.addScope('email');
+
+        // Make Firebase available globally
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.googleProvider = googleProvider;
+        window.signInWithPopup = signInWithPopup;
+        window.signOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.signInWithRedirect = signInWithRedirect;
+        window.getRedirectResult = getRedirectResult;
+        // Firestore functions
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+        window.updateDoc = updateDoc;
+        window.collection = collection;
+        window.query = query;
+        window.where = where;
+        window.getDocs = getDocs;
+        window.orderBy = orderBy;
+        window.limit = limit;
+    </script>
+</head>
+<body>
+    <!-- Login Interface -->
+    <div id="login-container" class="login-container">
+        <div class="login-form">
+            <div class="logo-container">
+                <img src="Jdia.jpg" alt="Jd AI Logo" class="logo">
+            </div>
+            <h1>Jd AI</h1>
+            <p>Your intelligent chat assistant powered by AI</p>
+
+            <div class="auth-tabs">
+                <button id="google-tab" class="auth-tab active">Google</button>
+                <button id="email-tab" class="auth-tab">Email</button>
+            </div>
+
+            <!-- Google Sign In -->
+            <div id="google-auth-section" class="auth-form active">
+                <button id="google-signin-btn" class="google-signin-btn">
+                    <svg class="google-icon" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    Continue with Google
+                </button>
+                <div id="google-error" class="error-message"></div>
+            </div>
+
+            <!-- Email Sign In/Sign Up -->
+            <div id="email-auth-section" class="auth-form">
+                <div class="email-tabs">
+                    <button id="signin-tab" class="email-tab active">Sign In</button>
+                    <button id="signup-tab" class="email-tab">Sign Up</button>
+                </div>
+
+                <!-- Sign In Form -->
+                <form id="signin-form" class="email-form active">
+                    <div class="form-group">
+                        <label for="signin-email">Email</label>
+                        <input type="email" id="signin-email" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="signin-password">Password</label>
+                        <input type="password" id="signin-password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="email-submit-btn">Sign In</button>
+                    <div id="signin-error" class="error-message"></div>
+                </form>
+
+                <!-- Sign Up Form -->
+                <form id="signup-form" class="email-form">
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required autocomplete="new-password" minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirm Password</label>
+                        <input type="password" id="signup-confirm-password" required autocomplete="new-password" minlength="6">
+                    </div>
+                    <button type="submit" class="email-submit-btn">Sign Up</button>
+                    <div id="signup-error" class="error-message"></div>
+                </form>
+            </div>
+
+            <div class="auth-info">
+                <p>By signing in, you agree to our Terms of Service and Privacy Policy.</p>
+                <p>Your conversations are stored securely in the cloud.</p>
+                <p class="auth-links">
+                    <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a> ·
+                    <a href="terms-of-use.html" target="_blank" rel="noopener">Terms of Use</a>
+                </p>
+            </div>
+
+            <div id="auth-error" class="error-message" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Interface -->
+    <div id="chat-container" class="app-container hidden">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="Jdia.jpg" alt="Jd AI Logo" class="sidebar-logo">
+                <h2>Jd AI</h2>
+                <button id="new-chat-btn" class="new-chat-btn" title="New Chat">
+                    <span class="btn-icon">+</span>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <input type="text" id="conversation-search" placeholder="Search conversations..." autocomplete="off">
+                <button id="clear-search-btn" class="clear-search-btn" title="Clear search">✕</button>
+            </div>
+            <div class="conversation-list" id="conversation-list">
+                <!-- Conversations will be populated here -->
+            </div>
+        </aside>
+        <main class="main-content">
+            <header class="header">
+                <div class="conversation-title" id="conversation-title">New Conversation</div>
+                <div class="header-right">
+                    <div class="user-info" id="user-info">
+                        <span class="user-name" id="user-name">User</span>
+                        <button id="logout-btn" class="logout-btn" title="Logout">🚪</button>
+                    </div>
+                    <div class="ai-status" id="ai-status">
+                        <span class="status-indicator">🟡</span>
+                        <span class="status-text">Loading AI model...</span>
+                        <button class="retry-btn" id="retry-ai-btn" style="display: none;" title="Retry AI loading">↻</button>
+                    </div>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </header>
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages"></div>
+                <div id="typing-indicator" class="typing-indicator" style="display: none;">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="typing-text">SmartChat is typing...</span>
+                </div>
+                <div class="input-container">
+                    <input type="text" id="message-input" placeholder="Type a message or /help for commands..." autocomplete="off">
+                    <button id="voice-btn" class="voice-btn" aria-label="Voice input" title="Voice input (click to speak)">
+                        <span class="voice-icon">🎤</span>
+                    </button>
+                    <button id="send-button" class="send-button" aria-label="Send message">
+                        <span class="send-icon">➤</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-links">
+            <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+            <a href="terms-of-use.html" target="_blank" rel="noopener">Terms of Use</a>
+            <a href="#" id="footer-contact-link">Contact</a>
+        </div>
+        <div class="footer-text">© 2026 Jd AI - All rights reserved.</div>
+    </footer>
+
+    <script type="module" src="firebase-test.js"></script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

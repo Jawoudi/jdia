@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformers.js Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.1/dist/transformers.min.js"></script>
+</head>
+<body>
+    <h1>Transformers.js Library Test</h1>
+    <div id="status">Testing...</div>
+    <button onclick="testLibrary()">Test Library</button>
+    <button onclick="testPipeline()">Test Pipeline</button>
+    <pre id="output"></pre>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const outputDiv = document.getElementById('output');
+
+        function log(message) {
+            outputDiv.textContent += message + '\n';
+            console.log(message);
+        }
+
+        function testLibrary() {
+            log('Testing Transformers.js library...');
+
+            if (typeof window.pipeline === 'undefined') {
+                statusDiv.textContent = '❌ Library not loaded';
+                log('❌ window.pipeline is undefined');
+                return;
+            }
+
+            statusDiv.textContent = '✅ Library loaded';
+            log('✅ window.pipeline is available');
+            log('Library version info: ' + (window.transformers ? 'Available' : 'Not available'));
+        }
+
+        async function testPipeline() {
+            log('Testing pipeline creation...');
+
+            try {
+                const generator = await window.pipeline('text-generation', 'Xenova/distilgpt2');
+                statusDiv.textContent = '✅ Pipeline created successfully';
+                log('✅ Pipeline created successfully');
+
+                // Test a simple generation
+                log('Testing text generation...');
+                const result = await generator('Hello, my name is', { max_new_tokens: 10 });
+                log('Generation result: ' + JSON.stringify(result, null, 2));
+
+            } catch (error) {
+                statusDiv.textContent = '❌ Pipeline creation failed';
+                log('❌ Error: ' + error.message);
+                log('Stack: ' + error.stack);
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            setTimeout(testLibrary, 1000);
+        });
+    </script>
+</body>
+</html>

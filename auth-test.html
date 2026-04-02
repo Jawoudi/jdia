@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartChat Auth Test</title>
+</head>
+<body>
+    <h1>SmartChat Authentication Test</h1>
+    <div id="test-results"></div>
+
+    <script type="module">
+        const results = document.getElementById('test-results');
+
+        function log(message, success = true) {
+            const div = document.createElement('div');
+            div.textContent = message;
+            div.style.color = success ? 'green' : 'red';
+            results.appendChild(div);
+        }
+
+        try {
+            // Test imports
+            log('Testing module imports...');
+
+            const { Auth } = await import('./js/auth.js');
+            log('✓ Auth module imported successfully');
+
+            const { Users } = await import('./js/users.js');
+            log('✓ Users module imported successfully');
+
+            const { Session } = await import('./js/session.js');
+            log('✓ Session module imported successfully');
+
+            const { Storage } = await import('./js/storage.js');
+            log('✓ Storage module imported successfully');
+
+            // Test instantiation
+            log('Testing module instantiation...');
+
+            const storage = new Storage();
+            log('✓ Storage instance created');
+
+            const users = new Users(storage);
+            log('✓ Users instance created');
+
+            const session = new Session(storage);
+            log('✓ Session instance created');
+
+            const auth = new Auth(users, session);
+            log('✓ Auth instance created');
+
+            // Test basic functionality
+            log('Testing basic functionality...');
+
+            const signupResult = await auth.signUp('testuser', 'testpass123');
+            if (signupResult.success) {
+                log('✓ User signup successful');
+            } else {
+                log('✗ User signup failed: ' + signupResult.message, false);
+            }
+
+            const loginResult = await auth.login('testuser', 'testpass123');
+            if (loginResult.success) {
+                log('✓ User login successful');
+            } else {
+                log('✗ User login failed: ' + loginResult.message, false);
+            }
+
+            log('All tests completed!');
+
+        } catch (error) {
+            log('✗ Error: ' + error.message, false);
+            console.error(error);
+        }
+    </script>
+</body>
+</html>
